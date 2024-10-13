@@ -12,9 +12,9 @@ d_ore_len = 25
 rare = 4
 d_rare = 4
 wn = 0
-squares = {}
 
 def generate():
+    global ore_color, bgcolor, ore_len, rare, square_len
     try:
         entry = ore_color_entry.get()
         a = int(entry, 16)
@@ -47,11 +47,11 @@ def generate():
 
 def clear():
     canvas.delete("all")
-    ore_color_entry.delete(0, tk.END)
-    bg_color_entry.delete(0, tk.END)
-    ore_len_entry.delete(0, tk.END)
-    rare_entry.delete(0, tk.END)
-    square_len_entry.delete(0, tk.END)
+    # ore_color_entry.delete(0, tk.END)
+    # bg_color_entry.delete(0, tk.END)
+    # ore_len_entry.delete(0, tk.END)
+    # rare_entry.delete(0, tk.END)
+    # square_len_entry.delete(0, tk.END)
 
 def default(entry):
     if entry == "ore_color":
@@ -83,28 +83,36 @@ def advanced():
 def ore_or_not(border=True):
     if border:
         border = ore_len // 9
-    # add else statenebt, changing border to int
-    # squares = {}
-    # a = int("1"+"0"*(ore_len-1))
-    # b = int("9"*ore_len)
-    # for y in range(ore_len):
-    #     seed = rd.randint(a, b)
-    #     for x in range(ore_len):
-            
-    #                                         !work in progress!
-
-    
-
+    # add else statement, changing border to int
+    squares = {}
+    a = int("1"+"0"*(ore_len-1))
+    b = int("9"*ore_len)
     for y in range(ore_len):
+        seed = str(rd.randint(a, b))
         for x in range(ore_len):
-            is_ore = rd.randint(1, rare) == 1
-            color = ore_color if is_ore else bgcolor
-            squares[(x, y)] = color
-            
-def processing1():
-    for (x, y), color in squares.items():
-        if color == ore_color:
-            r = rd.randint(1, 3) == 1
+            if int(seed[x]) % 2 == 0:
+                squares[(x, y)] = ore_color
+            else:
+                squares[(x, y)] = bgcolor
+    
+    return squares
+
+
+    # for y in range(ore_len):
+    #     for x in range(ore_len):
+    #         is_ore = rd.randint(1, rare) == 1
+    #         color = ore_color if is_ore else bgcolor
+    #         squares[(x, y)] = color
+                
+        #         will be deleted
+
+
+# def processing1():
+#     for (x, y), color in squares.items():
+#         if color == ore_color:
+#             r = rd.randint(1, 3) == 1
+
+#             func processing is in creation progress
 
 def draw_square(x, y, color):
     x0 = x * square_len
@@ -115,8 +123,7 @@ def draw_square(x, y, color):
                                  fill=f"#{color}", outline="")
 
 def ore_gen():
-    ore_or_not()
-    for (x, y), color in squares.items():
+    for (x, y), color in ore_or_not().items():
         draw_square(x, y, color)
 
 root = tk.Tk()
