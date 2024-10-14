@@ -9,7 +9,7 @@ square_len = 16
 d_square_len = 16
 ore_len = 25
 d_ore_len = 25
-rare = 4
+rare = 2
 d_rare = 4
 wn = 0
 
