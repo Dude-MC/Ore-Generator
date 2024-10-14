@@ -1,5 +1,5 @@
 import tkinter as tk
-import random as rd
+import numpy as np
 
 bgcolor = "606060"
 d_bgcolor = "606060"
@@ -18,20 +18,20 @@ def generate():
     try:
         entry = ore_color_entry.get()
         a = int(entry, 16)
-        if a <= 16777215 and a >= 0 and len(entry) == 6:                    # check this
+        if a <= 16777215 and a >= 0 and len(entry) == 6:
             ore_color = True
     except:
-        oreColor.config(text="Enter valid HEX color for ore", fg="red")     # print return to end the func
+        oreColor.config(text="Enter valid HEX color for ore", fg="red")
     else:
         oreColor.config(text="Enter RGB color for ore", fg="black")
 
     try:
         entry = bg_color_entry.get()
         a = int(entry, 16)
-        if a <= 16777215 and a >= 0 and len(entry) == 6:                    # check this
+        if a <= 16777215 and a >= 0 and len(entry) == 6:
             bgcolor = True
     except:
-        bgColor.config(text="Enter valid HEX color for ore", fg="red")      # print return to end the func
+        bgColor.config(text="Enter valid HEX color for ore", fg="red")
     else:
         bgColor.config(text="Enter RGB color for stone", fg="black")
     ore_color = ore_color_entry.get()
@@ -46,6 +46,7 @@ def generate():
         ore_gen()
 
 def clear():
+    global canvas
     canvas.delete("all")
     # ore_color_entry.delete(0, tk.END)
     # bg_color_entry.delete(0, tk.END)
@@ -54,6 +55,7 @@ def clear():
     # square_len_entry.delete(0, tk.END)
 
 def default(entry):
+    global ore_color, bgcolor, ore_len, rare, square_len
     if entry == "ore_color":
         ore_color_entry.delete(0, tk.END)
         ore_color_entry.insert(0, d_ore_color)
@@ -71,6 +73,7 @@ def default(entry):
         square_len_entry.insert(0, d_square_len)
 
 def advanced():
+    global wn
     if wn == 1:
         wn -= 1
         root.geometry(f"{root.winfo_width() - 250}x{root.winfo_height()}")
@@ -80,50 +83,29 @@ def advanced():
         root.geometry(f"{root.winfo_width() + 250}x{root.winfo_height()}")
         adv_settings.pack(side="left", fill="both")
 
-def ore_or_not(border=True):
-    if border:
-        border = ore_len // 9
-    # add else statement, changing border to int
-    squares = {}
-    a = int("1"+"0"*(ore_len-1))
-    b = int("9"*ore_len)
-    for y in range(ore_len):
-        seed = str(rd.randint(a, b))
-        for x in range(ore_len):
-            if int(seed[x]) % 2 == 0:
-                squares[(x, y)] = ore_color
-            else:
-                squares[(x, y)] = bgcolor
+def ore_or_not():           # border=True
+    global ore_len, ore_color, bgcolor
+    # if border:
+    #     border = ore_len // 9
+        
+    squares = np.random.randint(0, 10, size=(ore_len, ore_len))
+    seed = np.random.choice(range(10), size=rare, replace=False)
+
+    sq_color = np.vectorize(lambda x: ore_color if x in seed else bgcolor)
+    squares = sq_color(squares)
     
     return squares
 
-
-    # for y in range(ore_len):
-    #     for x in range(ore_len):
-    #         is_ore = rd.randint(1, rare) == 1
-    #         color = ore_color if is_ore else bgcolor
-    #         squares[(x, y)] = color
-                
-        #         will be deleted
-
-
-# def processing1():
-#     for (x, y), color in squares.items():
-#         if color == ore_color:
-#             r = rd.randint(1, 3) == 1
-
-#             func processing is in creation progress
-
 def draw_square(x, y, color):
+    global square_len
     x0 = x * square_len
     y0 = y * square_len
     x1 = x0 + square_len
     y1 = y0 + square_len
-    canvas.create_rectangle(x0, y0, x1, y1,
-                                 fill=f"#{color}", outline="")
+    canvas.create_rectangle(x0, y0, x1, y1, fill=f"#{color}", outline="")
 
 def ore_gen():
-    for (x, y), color in ore_or_not().items():
+    for (x, y), color in np.ndenumerate(ore_or_not()):
         draw_square(x, y, color)
 
 root = tk.Tk()
@@ -151,7 +133,7 @@ adv_settings = tk.Frame(root,                                           #frame f
     height=ore_len * square_len,)
 
 label = tk.Label(settings,                                              #label for the title
-    text="Ore Generator 3.0",
+    text="Ore Generator",
     font=("Helvetica", 16, "bold"))
 label.place(relx=0.5, rely=0.1, anchor="center")
 
