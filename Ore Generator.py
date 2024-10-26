@@ -16,7 +16,6 @@ root = tk.Tk()
 
 wn = 0
 space = 0
-drawing = False
 anim = tk.BooleanVar()
 optimize = tk.BooleanVar()
 
