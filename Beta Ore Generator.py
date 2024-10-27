@@ -1,10 +1,10 @@
 import tkinter as tk
 import numpy as np
 
-bgcolor = "606060"
-d_bgcolor = "606060"
 ore_color = "66ffff"
 d_ore_color = "66ffff"
+bgcolor = "606060"
+d_bgcolor = "606060"
 square_len = 16
 d_square_len = 16
 ore_len = 25
@@ -21,21 +21,15 @@ optimize = tk.BooleanVar()
 
 def generate():
     global ore_color, bgcolor, ore_len, rare, square_len
+        
     try:
-        entry = ore_color_entry.get()
-        a = int(entry, 16)
-        if a <= 16777215 and a >= 0 and len(entry) == 6:
-            oreColor.config(text="Enter RGB color for ore", fg="black")
+        if len(bg_color_entry.get()) != 6:
+            bgColor.config(text="Enter valid HEX color for stone", fg="black")
+            raise
+        
+        bgColor.config(text="Enter RGB color for stone", fg="black")
     except:
-        oreColor.config(text="Enter valid HEX color for ore", fg="red")
-
-    try:
-        entry = bg_color_entry.get()
-        a = int(entry, 16)
-        if a <= 16777215 and a >= 0 and len(entry) == 6:
-            bgColor.config(text="Enter RGB color for stone", fg="black")
-    except:
-        bgColor.config(text="Enter valid HEX color for ore", fg="red")
+        return
 
     ore_color = ore_color_entry.get()
     bgcolor = bg_color_entry.get()
@@ -49,6 +43,30 @@ def generate():
         canvas.config(width=ore_len * square_len, height=ore_len * square_len)
     if ore_color and bgcolor:
         ore_gen()
+
+
+
+def check(update=True):
+    global ore_color, bgcolor, ore_len, rare, square_len
+    for name, (entry, label) in {}:
+        entry = entry.get()
+        if len(entry) != 6:
+            label.config(text="HEX color must have 6 characters", fg="darkred")
+            return
+        try:
+            int(entry, 16)
+        except:
+            label.config(text=f"Enter valid HEX color for {name}", fg="darkred")
+            return
+
+        label.config(text=f"RGB color for {name}", fg="black")
+    
+    for name, (entry, label) in {(ore_len_entry, oreLen), (rare_entry, Rare), (square_len_entry, squareLen)}:
+        try:
+            int(''.join(filter(lambda x: x.isdigit(), entry.get())))
+        except:
+            label.config(text="", fg="darkred")
+            return
 
 def clear():
     canvas.delete("all")
@@ -159,7 +177,7 @@ label = tk.Label(settings,                                              #label f
 label.place(relx=0.5, rely=0.07, anchor="center")
 
 oreColor = tk.Label(settings,                                           #label for ore color
-    text="Enter RGB color for ore",
+    text="HEX color for ore",
     font=("", 10))
 oreColor.place(relx=0.5, rely=0.15, anchor="center")
 
@@ -174,7 +192,7 @@ ore_color_default = tk.Button(settings,                                 #button 
 ore_color_default.place(relx=0.8, rely=0.2, anchor="center")
 
 bgColor = tk.Label(settings,                                            #label for bgcolor
-    text="Enter RGB color for stone",
+    text="HEX color for stone",
     font=("", 10))
 bgColor.place(relx=0.5, rely=0.26, anchor="center")
 
@@ -189,7 +207,7 @@ bg_color_default = tk.Button(settings,                                  #button 
 bg_color_default.place(relx=0.8, rely=0.31, anchor="center")
 
 oreLen = tk.Label(settings,                                             #label for ore_len
-    text="Enter square number for the side",
+    text="square number for the side",
     font=("", 10))
 oreLen.place(relx=0.5, rely=0.37, anchor="center")
 
@@ -219,7 +237,7 @@ rare_default = tk.Button(settings,                                      #button 
 rare_default.place(relx=0.8, rely=0.53, anchor="center")
 
 squareLen = tk.Label(settings,                                          #label for square_len
-    text="Enter pixel number for the pixel side",
+    text="pixel number for the square side",
     font=("", 10))
 squareLen.place(relx=0.5, rely=0.59, anchor="center")
 
@@ -266,18 +284,18 @@ gen_button.place(relx=0.36, rely=0.94, anchor="center")
 root.bind('<Return>', lambda event: generate())
 root.bind('<Tab>', entryMove)
 
-d_entries = {
-    # "parameter": (entry, default_value)
-    "ore_color": (ore_color_entry, d_ore_color),
-    "bgcolor": (bg_color_entry, d_bgcolor),
-    "ore_len": (ore_len_entry, d_ore_len),
-    "rare": (rare_entry, d_rare),
-    "square_len": (square_len_entry, d_square_len)
+objects = {
+    # "variable": (entry, label, default value, default label)
+    "ore_color": (ore_color_entry, oreColor, "66ffff", "HEX color for ore"),
+    "bgcolor": (bg_color_entry, bgColor, "606060", "HEX color for stone"),
+    "ore_len": (ore_len_entry, oreLen, 25, "square number for the side"),
+    "rare": (rare_entry, Rare, 2, "ore rareness number"),
+    "square_len": (square_len_entry, squareLen, 16, "pixel number for the square side")
 }
 
 def default(entry):
-    global d_entries
-    d_entries[entry][0].delete(0, tk.END)
-    d_entries[entry][0].insert(0, d_entries[entry][1])
+    global objects
+    objects[entry][0].delete(0, tk.END)
+    objects[entry][0].insert(0, objects[entry][2])
 
 root.mainloop()
