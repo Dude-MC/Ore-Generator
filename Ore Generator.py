@@ -135,17 +135,19 @@ def draw_next_square(x, y):
     root.after(1, draw_next_square, x + 1, y)
 
 def entryMove(event):
-    global space
-    entry = [ore_color_entry, bg_color_entry, ore_len_entry, rare_entry, square_len_entry]
+    global objects, space
+    entry = [value[0] for value in objects.values()]
 
-    entry[space].focus_set()
-    entry[space].select_range(0, tk.END)
+    space = entry.index(root.focus_get())
 
     if space == len(entry)-1:
         space = 0
     else:
         space += 1
-    
+
+    entry[space].focus_set()
+    entry[space].select_range(0, tk.END)
+
     return "break"
 
 
