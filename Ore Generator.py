@@ -1,16 +1,19 @@
 import tkinter as tk
+from tkinter import colorchooser
 import numpy as np
 
-bgcolor = "606060"
-d_bgcolor = "606060"
 ore_color = "66ffff"
-d_ore_color = "66ffff"
+bgcolor = "606060"
 square_len = 16
-d_square_len = 16
 ore_len = 25
-d_ore_len = 25
 rare = 2
-d_rare = 2
+default_values = {
+    "ore_color": ("66ffff", "HEX color for ore"),
+    "bgcolor": ("606060", "HEX color for stone"),
+    "ore_len": (25, "square number for the side"),
+    "rare": (2, "ore rareness number"),
+    "square_len": (16, "pixel number for the square side")
+}
 
 root = tk.Tk()
 
@@ -21,34 +24,52 @@ optimize = tk.BooleanVar()
 
 def generate():
     global ore_color, bgcolor, ore_len, rare, square_len
-    try:
-        entry = ore_color_entry.get()
-        a = int(entry, 16)
-        if a <= 16777215 and a >= 0 and len(entry) == 6:
-            oreColor.config(text="Enter RGB color for ore", fg="black")
-    except:
-        oreColor.config(text="Enter valid HEX color for ore", fg="red")
+    
+    if check():
+        if optimize.get():
+            canvas.config(width=ore_len, height=ore_len)
+        else:
+            canvas.config(width=ore_len * square_len, height=ore_len * square_len)
 
-    try:
-        entry = bg_color_entry.get()
-        a = int(entry, 16)
-        if a <= 16777215 and a >= 0 and len(entry) == 6:
-            bgColor.config(text="Enter RGB color for stone", fg="black")
-    except:
-        bgColor.config(text="Enter valid HEX color for ore", fg="red")
-
-    ore_color = ore_color_entry.get()
-    bgcolor = bg_color_entry.get()
-    ore_len = int(ore_len_entry.get())
-    rare = int(rare_entry.get())
-    square_len = int(square_len_entry.get())
-
-    if optimize.get():
-        canvas.config(width=ore_len, height=ore_len)
-    else:
-        canvas.config(width=ore_len * square_len, height=ore_len * square_len)
-    if ore_color and bgcolor:
         ore_gen()
+
+def check():
+    global objects, default_values
+    for name,(entry, label) in list(objects.items())[:2]:
+        text = entry.get()
+        if len(text) != 6:
+            label.config(text="HEX color should contain 6 characters", fg="darkred")
+            return False
+        try:
+            int(text, 16)
+        except:
+            label.config(text=f"Enter valid {default_values[name][1]}", fg="darkred")
+            return False
+
+        label.config(text=default_values[name][1], fg="black")
+
+        globals()[name] = text
+    
+    for name, (entry, label) in list(objects.items())[2:]:
+        try:
+            num = int(''.join(filter(lambda x: x.isdigit(), entry.get())))
+        except:
+            label.config(text="", fg="darkred")
+            return False
+
+        globals()[name] = num
+    
+    return True
+
+def color_picker(name):
+    global objects, default_values
+
+    rgb, color = colorchooser.askcolor(title=f"{default_values[name][1]}")
+
+    objects[name][0].delete(0, tk.END)
+    objects[name][0].insert(0, color[1:])
+
+    globals()[name] = color[1:]
 
 def clear():
     canvas.delete("all")
@@ -69,8 +90,8 @@ def ore_or_not():           # border=True
     # if border:
     #     border = ore_len // 9
     
-    squares = np.random.randint(0, 25, size=(ore_len, ore_len))
-    seed = np.random.choice(range(25), size=rare, replace=False)
+    squares = np.random.randint(0, 100, size=(ore_len, ore_len))
+    seed = np.random.choice(range(100), size=rare, replace=False)
 
     sq_color = np.vectorize(lambda x: ore_color if x in seed else bgcolor)
     squares = sq_color(squares)
@@ -101,7 +122,7 @@ def ore_gen():
         scale_canvas()
 
 def draw_next_square(x, y):
-    global squares, drawTime, drawStart, allTime
+    global squares
     if y >= ore_len:
         scale_canvas()
         return
@@ -159,43 +180,53 @@ label = tk.Label(settings,                                              #label f
 label.place(relx=0.5, rely=0.07, anchor="center")
 
 oreColor = tk.Label(settings,                                           #label for ore color
-    text="Enter RGB color for ore",
+    text="HEX color for ore",
     font=("", 10))
 oreColor.place(relx=0.5, rely=0.15, anchor="center")
 
+choose_ore_color = tk.Button(settings,                                  #button to open ore color picker
+    text="🖌",
+    command=lambda: color_picker("ore_color"))
+choose_ore_color.place(relx=0.1, rely=0.2, anchor="center")
+
 ore_color_entry = tk.Entry(settings,                                    #entry for ore color
     justify="center")
-ore_color_entry.insert(0, d_ore_color)
-ore_color_entry.place(relx=0.37, rely=0.2, anchor="center")
+ore_color_entry.insert(0, default_values["ore_color"][0])
+ore_color_entry.place(relx=0.45, rely=0.2, anchor="center")
 
 ore_color_default = tk.Button(settings,                                 #button for setting ore color to default
     text="default",
     command=lambda: default("ore_color"))
-ore_color_default.place(relx=0.8, rely=0.2, anchor="center")
+ore_color_default.place(relx=0.85, rely=0.2, anchor="center")
 
 bgColor = tk.Label(settings,                                            #label for bgcolor
-    text="Enter RGB color for stone",
+    text="HEX color for stone",
     font=("", 10))
 bgColor.place(relx=0.5, rely=0.26, anchor="center")
 
+choose_bgcolor = tk.Button(settings,                                  #button to open bgcolor picker
+    text="🖌",
+    command=lambda: color_picker("bgcolor"))
+choose_bgcolor.place(relx=0.1, rely=0.31, anchor="center")
+
 bg_color_entry = tk.Entry(settings,                                     #entry for bgcolor
     justify="center")
-bg_color_entry.insert(0, d_bgcolor)
-bg_color_entry.place(relx=0.37, rely=0.31, anchor="center")
+bg_color_entry.insert(0, default_values["bgcolor"][0])
+bg_color_entry.place(relx=0.45, rely=0.31, anchor="center")
 
 bg_color_default = tk.Button(settings,                                  #button for setting bg color to default
     text="default",
     command=lambda: default("bgcolor"))
-bg_color_default.place(relx=0.8, rely=0.31, anchor="center")
+bg_color_default.place(relx=0.85, rely=0.31, anchor="center")
 
 oreLen = tk.Label(settings,                                             #label for ore_len
-    text="Enter square number for the side",
+    text="square number for the side",
     font=("", 10))
 oreLen.place(relx=0.5, rely=0.37, anchor="center")
 
 ore_len_entry = tk.Entry(settings,                                      #entry for ore_len
     justify="center")
-ore_len_entry.insert(0, d_ore_len)
+ore_len_entry.insert(0, default_values["ore_len"][0])
 ore_len_entry.place(relx=0.37, rely=0.42, anchor="center")
 
 ore_len_default = tk.Button(settings,                                   #button for setting ore len to default
@@ -210,7 +241,7 @@ Rare.place(relx=0.5, rely=0.48, anchor="center")
 
 rare_entry = tk.Entry(settings,                                         #entry for rare
     justify="center")
-rare_entry.insert(0, d_rare)
+rare_entry.insert(0, default_values["rare"][0])
 rare_entry.place(relx=0.37, rely=0.53, anchor="center")
 
 rare_default = tk.Button(settings,                                      #button for setting rare to default
@@ -219,13 +250,13 @@ rare_default = tk.Button(settings,                                      #button 
 rare_default.place(relx=0.8, rely=0.53, anchor="center")
 
 squareLen = tk.Label(settings,                                          #label for square_len
-    text="Enter pixel number for the pixel side",
+    text="pixel number for the square side",
     font=("", 10))
 squareLen.place(relx=0.5, rely=0.59, anchor="center")
 
 square_len_entry = tk.Entry(settings,                                   #entry for square_len
     justify="center")
-square_len_entry.insert(0, d_square_len)
+square_len_entry.insert(0, default_values["square_len"][0])
 square_len_entry.place(relx=0.37, rely=0.64, anchor="center")
 
 square_len_default = tk.Button(settings,                                #button for setting square len to default
@@ -266,18 +297,18 @@ gen_button.place(relx=0.36, rely=0.94, anchor="center")
 root.bind('<Return>', lambda event: generate())
 root.bind('<Tab>', entryMove)
 
-d_entries = {
-    # "parameter": (entry, default_value)
-    "ore_color": (ore_color_entry, d_ore_color),
-    "bgcolor": (bg_color_entry, d_bgcolor),
-    "ore_len": (ore_len_entry, d_ore_len),
-    "rare": (rare_entry, d_rare),
-    "square_len": (square_len_entry, d_square_len)
+objects = {
+    # "variable": (entry, label)
+    "ore_color": (ore_color_entry, oreColor),
+    "bgcolor": (bg_color_entry, bgColor),
+    "ore_len": (ore_len_entry, oreLen),
+    "rare": (rare_entry, Rare),
+    "square_len": (square_len_entry, squareLen)
 }
 
 def default(entry):
-    global d_entries
-    d_entries[entry][0].delete(0, tk.END)
-    d_entries[entry][0].insert(0, d_entries[entry][1])
+    global default_values, objects
+    objects[entry][0].delete(0, tk.END)
+    objects[entry][0].insert(0, default_values[entry][0])
 
 root.mainloop()
